@@ -1,0 +1,28 @@
+<component name="libraryTable">
+  <library name="io.jbotsim:jbotsim-all:1.1.1" type="repository">
+    <properties maven-id="io.jbotsim:jbotsim-all:1.1.1" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-all/1.1.1/jbotsim-all-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-extras-swing/1.1.1/jbotsim-extras-swing-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-ui-swing/1.1.1/jbotsim-ui-swing-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-core/1.1.1/jbotsim-core-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-serialization-common/1.1.1/jbotsim-serialization-common-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.7.2/antlr4-runtime-4.7.2.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-ui-common/1.1.1/jbotsim-ui-common-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-extras-common/1.1.1/jbotsim-extras-common-1.1.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-icons/1.1.1/jbotsim-icons-1.1.1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-all/1.1.1/jbotsim-all-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-extras-swing/1.1.1/jbotsim-extras-swing-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-ui-swing/1.1.1/jbotsim-ui-swing-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-core/1.1.1/jbotsim-core-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-serialization-common/1.1.1/jbotsim-serialization-common-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.7.2/antlr4-runtime-4.7.2-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-ui-common/1.1.1/jbotsim-ui-common-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-extras-common/1.1.1/jbotsim-extras-common-1.1.1-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/jbotsim/jbotsim-icons/1.1.1/jbotsim-icons-1.1.1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

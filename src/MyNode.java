@@ -12,6 +12,8 @@ public class MyNode extends Node{
     private int father_color;
     private int l;
     private int l_prime;
+    private int to_remove = 5;
+    private boolean shift = true;
 
     private void getCorrespColo(int c) {
         switch (c) {
@@ -72,9 +74,24 @@ public class MyNode extends Node{
         return 2*p + bin_p;
     }
 
+    private int FirstFree(List<Message> l) {
+        //here we suppose that there are at most 6 colors
+        boolean[] present = {false, false, false, false, false, false};
+        for (Message m: l) {
+            present[(int)m.getContent()] = true;
+        }
+        for (int i = 0; i < 6; i++) {
+            if (!present[i]) return i;
+        }
+        throw new IllegalStateException("More than 6 colors among the neighbours !");
+    }
+
     @Override
     public void onStart() {
-        // JBotSim executes this method on each node upon initialization
+        /*
+         JBotSim executes this method on each node upon initialization
+        For now we consider that the father of a node is the neighbour with the smallest id
+        */
         color = getID();
         father_color = Math.max(1 - color, 0);
         l = (int) Math.ceil(Math.log(nb_nodes)/Math.log(2));
@@ -95,27 +112,46 @@ public class MyNode extends Node{
 
     @Override
     public void onClock() {
-        /*
-         JBotSim executes this method on each node in each round
-         For now we consider that the father of a node is the neighbour with the smallest id
-        */
-        if (l != l_prime) {
-            List<Message> messages = getMailbox();
-            //at the first iteration, the mailbox is empty
+        // JBotSim executes this method on each node in each round
+        List<Message> messages = getMailbox();
+        if (to_remove >= 3) {
             if (!messages.isEmpty()) {
+                //at the first iteration, the mailbox is empty
                 for (Message m : messages) {
                     if (m.getSender() == father) {
                         father_color = (int) m.getContent();
-                        color = PosDiff(color, father_color);
-                        l_prime = l;
-                        l = 1 + (int) Math.ceil(Math.log(l) / Math.log(2));
                     }
                 }
+                if (l != l_prime) {
+                    color = PosDiff(color, father_color);
+                    l_prime = l;
+                    l = 1 + (int) Math.ceil(Math.log(l) / Math.log(2));
+                } else {
+                    getCorrespColo(color);
+                    if (shift) {
+                        color = father_color;
+                        shift = false;
+                    } else {
+                        if (color == to_remove) {
+
+                        }
+                        to_remove = to_remove -1;
+                        shift = true;
+                    }
+                    getCorrespColo(color);
+                }
             }
+        } else {
+            //conflicts
+            for (Message m : messages) {
+                if ((int) m.getContent() == color && m.getSender().getID() > this.getID()) {
+                    color = FirstFree(messages);
+                    break;
+                }
+            }
+            getCorrespColo(color);
         }
-        else {
-            //TODO part about the conflicts and the reduction to 3 colors
-        }
+        sendAll(new Message(color));
     }
 
     @Override

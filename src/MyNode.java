@@ -94,6 +94,7 @@ public class MyNode extends Node{
         */
         color = getID();
         father_color = Math.max(1 - color, 0);
+        System.out.println(nb_nodes);
         l = (int) Math.ceil(Math.log(nb_nodes)/Math.log(2));
         l_prime = l+1; //arbitrarily fixed so that l != l_prime
         List<Node> nei = getNeighbors();

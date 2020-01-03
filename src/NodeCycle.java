@@ -5,15 +5,20 @@ import java.util.List;
 import java.lang.Math;
 import java.util.BitSet;
 
-public class MyNode extends Node{
-    static int nb_nodes;
+public class NodeCycle extends Node {
+    static int nb_nodes = -1;
     private Node father = null;
     private int color;
     private int father_color;
-    private int l;
+    private int succ_color;
+    private int l = -1;
     private int l_prime;
     private int to_remove = 5;
     private boolean shift = true;
+
+    private double log2(int x) {
+        return Math.log(x)/Math.log(2);
+    }
 
     private void getCorrespColo(int c) {
         switch (c) {
@@ -93,17 +98,8 @@ public class MyNode extends Node{
         For now we consider that the father of a node is the neighbour with the smallest id
         */
         color = getID();
-        father_color = Math.max(1 - color, 0);
-        System.out.println(nb_nodes);
-        l = (int) Math.ceil(Math.log(nb_nodes)/Math.log(2));
-        l_prime = l+1; //arbitrarily fixed so that l != l_prime
-        List<Node> nei = getNeighbors();
+        nb_nodes = Math.max(nb_nodes, color);
         father = this;
-        for (Node n: nei) {
-            if (father == this || n.getID() > father.getID()) {
-                father = n;
-            }
-        }
     }
 
     @Override
@@ -114,33 +110,36 @@ public class MyNode extends Node{
     @Override
     public void onClock() {
         // JBotSim executes this method on each node in each round
+        if (l < 0) {
+            l = (int) Math.ceil(log2(nb_nodes));
+            l_prime = l+1; //arbitrarily fixed so that l != l_prime
+            // initializing the father
+            List<Node> nei = getNeighbors();
+            for (Node n: nei) {
+                if (father == this || n.getID() > father.getID()) {
+                    father = n;
+                }
+            }
+        }
         List<Message> messages = getMailbox();
         if (to_remove >= 3) {
             if (!messages.isEmpty()) {
                 //at the first iteration, the mailbox is empty
-                System.out.println(messages.size());
                 for (Message m : messages) {
-                    if (m.getSender() == father) {
-                        father_color = (int) m.getContent();
-                    }
+                    if (m.getSender() == father) father_color = (int) m.getContent();
+                    else succ_color = (int) m.getContent();
                 }
                 if (l != l_prime) {
-                    color = PosDiff(color, father_color);
+                    color = PosDiff(PosDiff(father_color, color),PosDiff(color, succ_color));
                     l_prime = l;
-                    l = 1 + (int) Math.ceil(Math.log(l) / Math.log(2));
+                    l = 1 + (int) Math.ceil(log2(1 + (int) Math.ceil(log2(l))));
                 } else {
                     getCorrespColo(color);
-                    if (shift) {
-                        color = father_color;
-                        shift = false;
-                    } else {
-                        if (color == to_remove) {
-                            //ReducePalette
-                            color = FirstFree(messages);
-                        }
-                        to_remove = to_remove -1;
-                        shift = true;
+                    if (color == to_remove) {
+                        //ReducePalette
+                        color = FirstFree(messages);
                     }
+                    to_remove = to_remove -1;
                     getCorrespColo(color);
                 }
             }

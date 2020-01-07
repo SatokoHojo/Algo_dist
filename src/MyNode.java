@@ -1,23 +1,27 @@
 import io.jbotsim.core.Color;
+import io.jbotsim.core.Message;
 import io.jbotsim.core.Node;
-
 import java.util.BitSet;
+import java.util.List;
 
 public abstract class MyNode extends Node {
 
-    static int nb_nodes = -1;
-    static int delta = -1;
-    protected int l = -1;
+    public static int nb_nodes = 0;
+    public static int delta = 0;
+    protected int l;
     protected int l_prime;
-    protected int to_remove = 5;
-    protected  boolean finished = false;
+    protected int to_remove;
+    protected  boolean finished;
+    protected int myColor;
 
-    public void init() {
-        nb_nodes++;
-        int degree = getNeighbors().size();
-        if (degree > delta){
-            delta = degree;
-        }
+
+    @Override
+    public void onStart() {
+        myColor = 0;
+        to_remove = 5;
+        finished = false;
+        l = (int) Math.ceil(log2(nb_nodes));
+        l_prime = l+1;//arbitrarily fixed so that l != l_prime
     }
 
     protected double log2(int x) {
@@ -58,6 +62,21 @@ public abstract class MyNode extends Node {
         return 2*p + bin_p;
     }
 
+
+    protected abstract int FirstFree(List<Message> l) ;
+
+    //remove all the colors bigger than delta+1 (leaving delta+1 colors)
+    //for the cycle, that corresponds to the color 5,4,3 (leaving the 3 colors 0,1,2)
+    protected void reducePalette(List<Message> messages){ //ici les messsages sont des couleurs pour chaque voisins
+        if (to_remove > delta) {
+            if (myColor == to_remove) {
+                myColor = FirstFree(messages);
+            }
+            to_remove = to_remove -1;
+        }
+        sendAll(new Message(myColor) );
+    }
+
     protected void getCorrespColor(int c) {
         int max_color = delta;
         if (c > max_color) {
@@ -66,7 +85,6 @@ public abstract class MyNode extends Node {
             if(max_color == 0) setColor(new Color(0));
             else {
                 int col = (int) Math.floor(c * (255. / max_color));
-                //System.out.print(col + " ");
                 setColor(new Color(col, 255 - col, 0));
             }
         }

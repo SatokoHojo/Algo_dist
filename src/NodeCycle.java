@@ -5,22 +5,15 @@ import java.util.List;
 import java.lang.Math;
 import java.util.BitSet;
 
-public class NodeCycle extends Node {
-    static int nb_nodes = -1;
+public class NodeCycle extends MyNode {
     private Node father = null;
     private int color;
     private int father_color;
     private int succ_color;
-    private int l = -1;
-    private int l_prime;
-    private int to_remove = 5;
-    private boolean shift = true;
 
-    private double log2(int x) {
-        return Math.log(x)/Math.log(2);
-    }
 
-    private void getCorrespColo(int c) {
+/*
+    protected void getCorrespColor(int c) {
         switch (c) {
             case 0:
                 setColor(Color.BLUE);
@@ -44,40 +37,7 @@ public class NodeCycle extends Node {
                 throw new IllegalStateException("Unexpected value: " + c);
         }
     }
-
-    private BitSet binary(int n, int size) {
-        BitSet ret = new BitSet(size);
-        int index = 0;
-        int tmp = n;
-        while (tmp != 0) {
-            if (tmp%2 == 1) ret.set(index);
-            index = index+1;
-            tmp = tmp/2;
-        }
-        return ret;
-    }
-
-    private int PosDiff(int c, int cf) {
-        int m = Math.max(c,cf);
-        int max_pow = 0;
-        int tmp = 2;
-        while (m > tmp-1) {
-            max_pow = max_pow+1;
-            tmp = tmp*2;
-        }
-        int size = max_pow +1;
-        BitSet bin_c = binary(c, size);
-        BitSet bin_cf = binary(cf, size);
-        BitSet diff = (BitSet) bin_c.clone();
-        diff.xor(bin_cf);
-        if (diff.isEmpty()) throw new IllegalStateException("Same colors !");
-        int p = 0;
-        while (!diff.get(p)) { //while the bits are identical
-            p++;
-        }
-        int bin_p = bin_c.get(p) ? 1 : 0;
-        return 2*p + bin_p;
-    }
+*/
 
     private int FirstFree(List<Message> l) {
         //here we suppose that there are at most 6 colors
@@ -134,13 +94,13 @@ public class NodeCycle extends Node {
                     l_prime = l;
                     l = 1 + (int) Math.ceil(log2(1 + (int) Math.ceil(log2(l))));
                 } else {
-                    getCorrespColo(color);
+                    getCorrespColor(color);
                     if (color == to_remove) {
                         //ReducePalette
                         color = FirstFree(messages);
                     }
                     to_remove = to_remove -1;
-                    getCorrespColo(color);
+                    getCorrespColor(color);
                 }
             }
         } else {
@@ -151,7 +111,7 @@ public class NodeCycle extends Node {
                     break;
                 }
             }
-            getCorrespColo(color);
+            getCorrespColor(color);
         }
         sendAll(new Message(color));
     }

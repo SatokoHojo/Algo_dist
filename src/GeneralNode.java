@@ -1,3 +1,4 @@
+import io.jbotsim.core.Color;
 import io.jbotsim.core.Node;
 import io.jbotsim.core.Message;
 import java.util.ArrayList;
@@ -5,58 +6,14 @@ import java.lang.Math;
 import java.util.BitSet;
 import java.util.List;
 
-public class GeneralNode extends Node {
-    static int nb_nodes = 10; // assuming for now we calculate it somehow before starting
-    static int delta = 2; // same
+public class GeneralNode extends MyNode {
     private ArrayList<Node> fathers;
     private int[] colors;
     private int[] father_colors;
-    private int l = -1;
-    private int l_prime;
-    private boolean init = true;
-    private int to_remove = 5;
     private boolean shift = true;
     private int final_color = -1;
     private boolean reduction_started = false;
     private boolean printed_res = false;
-
-    private double log2(int x) {
-        return Math.log(x)/Math.log(2);
-    }
-
-    private BitSet binary(int n, int size) {
-        BitSet ret = new BitSet(size);
-        int index = 0;
-        int tmp = n;
-        while (tmp != 0) {
-            if (tmp%2 == 1) ret.set(index);
-            index = index+1;
-            tmp = tmp/2;
-        }
-        return ret;
-    }
-
-    private int PosDiff(int c, int cf) {
-        int m = Math.max(c,cf);
-        int max_pow = 0;
-        int tmp = 2;
-        while (m > tmp-1) {
-            max_pow = max_pow+1;
-            tmp = tmp*2;
-        }
-        int size = max_pow +1;
-        BitSet bin_c = binary(c, size);
-        BitSet bin_cf = binary(cf, size);
-        BitSet diff = (BitSet) bin_c.clone();
-        diff.xor(bin_cf);
-        if (diff.isEmpty()) throw new IllegalStateException("Same colors !");
-        int p = 0;
-        while (!diff.get(p)) { //while the bits are identical
-            p++;
-        }
-        int bin_p = bin_c.get(p) ? 1 : 0;
-        return 2*p + bin_p;
-    }
 
     private int FirstFree(List<Message> l, int index) {
         // careful with the number of neighbours, or this function will explode
@@ -64,14 +21,14 @@ public class GeneralNode extends Node {
         for (Message m : l) {
             max = Math.max(max, ((int[]) m.getContent())[index]);
         }
-        boolean[] present = new boolean[max];
+        boolean[] present = new boolean[max+1];
         for (Message m: l) {
             present[((int[])m.getContent())[index]] = true;
         }
         for (int i = 0; i < max+1; i++) {
             if (!present[i]) return i;
         }
-        throw new IllegalStateException("More than " + max + " colors among the neighbours !");
+        return (max + 1);
     }
 
     private int FirstFree(List<Message> l) {
@@ -87,9 +44,16 @@ public class GeneralNode extends Node {
         for (int i = 0; i < max+1; i++) {
             if (!present[i]) return i;
         }
-        throw new IllegalStateException("More than " + max + " colors among the neighbours !");
+        return (max + 1);
     }
 
+    void sendColors(){
+        int[] colors_to_send = new int[colors.length];
+        for (int i = 0 ; i < colors.length; i++){
+            colors_to_send[i] = colors[i];
+        }
+        sendAll(new Message(colors_to_send));
+    }
     @Override
     public void onStart() {
         /*
@@ -105,28 +69,114 @@ public class GeneralNode extends Node {
 
         l = (int) Math.ceil(log2(nb_nodes));
         l_prime = l+1; //arbitrarily fixed so that l != l_prime
+        List<Node> nei = getNeighbors();
+        int current_nb = 0;
+        for (Node n : nei) {
+            if (n.getID() < getID()) {
+                fathers.add(n);
+                current_nb++;
+            }
+        }
+        for (int i = current_nb; i < delta; i++) {
+            fathers.add(this);
+            father_colors[i] = Math.max(1-getID(), 0);
+        }
+
+        sendColors();
+    }
+
+
+    private void color6Dloop(){
+        for (int i = 0; i < delta; i++) {
+            //System.out.print("dans color father_colors");
+            //System.out.println("id : " + getID() + ", color : " + colors[i] + ", father's : " + father_colors[i] + ", father : " + fathers.get(i).getID());
+            colors[i] = PosDiff(colors[i], father_colors[i]);
+            l_prime = l;
+            l = 1 + (int) Math.ceil(log2(l));
+        }
+        sendColors();
+    }
+
+    private void reduce3to6D(List<Message> messages){
+        if (shift) {
+            for (int i = 0; i < delta; i++) {
+                colors[i] = father_colors[i];
+                if (fathers.get(i).getID() == getID()){
+                    father_colors[i] = Math.max(1-colors[i], 0);
+                }
+            }
+            shift = false;
+        } else {
+            for (int i = 0; i < delta; i++) {
+                if (colors[i] == to_remove) {
+                    //ReducePalette
+                    colors[i] = FirstFree(messages, i);
+                }
+            }
+            to_remove = to_remove - 1;
+            shift = true;
+        }
+        sendColors();
+    }
+
+
+    private void reduceColors(List<Message> messages){
+        if (to_remove >= delta+1) {
+            if (final_color == to_remove) {
+                final_color = FirstFree(messages);
+            }
+            to_remove = to_remove -1;
+        }
+        sendAll(new Message(final_color) );
     }
 
     @Override
     public void onClock() {
-        // JBotSim executes this method on each node in each round
-        if (init) { // because the list of neighbours isn't fixed in onStart
-            List<Node> nei = getNeighbors();
-            int current_nb = 0;
-            for (Node n : nei) {
-                if (n.getID() < getID()) {
-                    fathers.add(n);
-                    current_nb++;
+        if (! finished){
+
+            //partie 2 : reduction de 3D à D+1 couleurs
+            if (reduction_started) {
+                List<Message> messages = getMailbox();
+                reduceColors(messages);
+                if (to_remove == delta){
+                    getCorrespColor(final_color);
+                    finished = true;
+                    System.out.print("final : id : " + getID() + ", final color : " + final_color + "\n");
                 }
             }
-            for (int i = current_nb; i < delta; i++) {
-                fathers.add(this);
-                father_colors[i] = Math.max(1-getID(), 0);
+
+            //Partie 1 : 3D coloration
+            else {
+                List<Message> messages = getMailbox();
+                for (Message m : messages) {
+                    if (m.getSender().getID() < getID()) {
+                        int index = fathers.indexOf(m.getSender());
+                        father_colors[index] = ((int[]) m.getContent())[index];
+                    }
+                }
+                if (l != l_prime) {
+                    color6Dloop();
+                } else if (to_remove >= 3) { //passer de 6 à 3 couleur par arbres
+                    reduce3to6D(messages);
+                } else { // on a fini notre 3D coloration, on passe à la 2eme partie
+                    int tmp = 0;
+                    for (int i = 0; i < delta; i++) tmp += (int) Math.pow(3, i) * colors[i];
+                    final_color = tmp;
+                    to_remove = (int) Math.pow(3, delta) - 1;
+                    reduction_started = true;
+                    System.out.println("id : " + getID() + ", color : " + final_color + " nb colors : " + to_remove);
+                    sendAll(new Message(final_color) );
+                }
             }
-            init = false;
         }
+
+        /*
+
+
+        // JBotSim executes this method on each node in each round
         List<Message> messages = getMailbox();
-        if (to_remove >= 3 && !reduction_started) {
+        if (to_remove >= 3 && !reduction_started) { //1ere partie
+            System.out.print("id : " + getID() + ", current colors : " + colors[0] + ", " + colors[1] + "\n");
             if (!messages.isEmpty()) {
                 //at the first iteration, the mailbox is empty
                 for (Message m : messages) {
@@ -137,6 +187,7 @@ public class GeneralNode extends Node {
                 }
                 if (l != l_prime) {
                     for (int i = 0; i < delta; i++) {
+                        System.out.println("id : " + getID() + ", color : " + colors[i] + ", father's : " + father_colors[i] + ", father : " + fathers.get(i).getID());
                         colors[i] = PosDiff(colors[i], father_colors[i]);
                         l_prime = l;
                         l = 1 + (int) Math.ceil(log2(l));
@@ -158,13 +209,18 @@ public class GeneralNode extends Node {
                     }
                 }
             }
+            System.out.print("id : " + getID() + ", new colors : " + colors[0] + ", " + colors[1] + "\n");
             sendAll(new Message(colors));
-        } else {
+
+
+
+        } else { // reduce palettte
             // a priori no conflicts
             if (!reduction_started) {
                 int tmp = 0;
                 for (int i = 0; i < delta; i++) tmp += (int) Math.pow(3, i)*colors[i];
                 final_color = tmp;
+                System.out.println("id : " + getID() + ", color : " + final_color);
                 to_remove = (int) Math.pow(3, delta) -1;
                 reduction_started = true;
             }
@@ -175,10 +231,10 @@ public class GeneralNode extends Node {
                 to_remove = to_remove -1;
             } else if (!printed_res) {
                 //prints once the final color
-                System.out.print("id : " + getID() + ", color : " + final_color + "\n");
+                System.out.print("id : " + getID() + ", final color : " + final_color + "\n");
                 printed_res = true;
             }
             sendAll(new Message(final_color));
-        }
+        }*/
     }
 }

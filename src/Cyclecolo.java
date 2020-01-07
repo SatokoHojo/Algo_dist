@@ -4,10 +4,10 @@ import io.jbotsim.core.Node;
 
 public class Cyclecolo {
     public static void main(String[] args){
-        Topology tp = new Topology();
-        tp.setDefaultNodeModel(NodeCycle.class);
+        MyTopology tp = new MyTopology();
+        tp.setDefaultNodeModel(GeneralNode.class);
         new JViewer(tp);
-        tp.start();
+        //tp.start();
         //System.out.println(tp.getNodes().size());
     }
 }

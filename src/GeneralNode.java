@@ -56,7 +56,7 @@ public class GeneralNode extends MyNode {
     /* A OPTIMISER*/
     //here l is the list of message containing the color (table) of each neighbor
     //index is the number of the 1-orientation we ar focusing on
-    private int FirstFree(List<Message> l, int index) {
+    /*private int FirstFree(List<Message> l, int index) {
         // careful with the number of neighbours, or this function will explode
         int max = 0;
         for (Message m : l) {
@@ -70,11 +70,25 @@ public class GeneralNode extends MyNode {
             if (!present[i]) return i;
         }
         return (max + 1);
+    }*/
+
+
+    private int FirstFree(List<Message> l, int index) {
+        boolean[] present = new boolean[delta+1];
+        int c_tmp;
+        for (Message m: l) {
+            c_tmp = ((int[])m.getContent())[index];
+            if (c_tmp < delta+1) present[c_tmp] = true;
+        }
+        for (int i = 0; i < delta+1; i++) {
+            if (!present[i]) return i;
+        }
+        throw new IllegalStateException("Wrong value of delta !");
     }
 
 
     //here l is the list of message containing the color of each neighbor
-    protected int FirstFree(List<Message> l) {
+    /*protected int FirstFree(List<Message> l) {
         // careful with the number of neighbours, or this function will explode
         int max = 0;
         for (Message m : l) {
@@ -88,8 +102,20 @@ public class GeneralNode extends MyNode {
             if (!present[i]) return i;
         }
         return (max + 1);
+    }*/
+
+    protected int FirstFree(List<Message> l) {
+        boolean[] present = new boolean[delta+1];
+        int c_tmp;
+        for (Message m: l) {
+            c_tmp = (int)m.getContent();
+            if (c_tmp < delta+1) present[c_tmp] = true;
+        }
+        for (int i = 0; i < delta+1; i++) {
+            if (!present[i]) return i;
+        }
+        throw new IllegalStateException("Wrong value of delta !");
     }
-    /**/
 
     void sendColors(){
         int[] colors_to_send = new int[colors.length];
